@@ -10,6 +10,43 @@ import { UserStats } from './UserStats';
 const Dashboard = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
+  // Initial theme check from API
+  React.useEffect(() => {
+    const fetchThemePreference = async () => {
+      try {
+        const response = await fetch('/api/theme-preference');
+        const { isDarkMode: darkModePreference } = await response.json();
+        setIsDarkMode(darkModePreference);
+      } catch (error) {
+        console.error('Failed to fetch theme preference:', error);
+      }
+    };
+    fetchThemePreference();
+  }, []);
+
+  /* 
+  // Real-time theme updates via WebSocket/SSE
+  // Uncomment and implement based on your backend:
+
+  React.useEffect(() => {
+    const themeUpdateStream = new EventSource('/api/theme-updates');
+    
+    themeUpdateStream.onmessage = (event) => {
+      const { isDarkMode: newThemePreference } = JSON.parse(event.data);
+      setIsDarkMode(newThemePreference);
+    };
+
+    themeUpdateStream.onerror = (error) => {
+      console.error('Theme update stream error:', error);
+      themeUpdateStream.close();
+    };
+
+    return () => {
+      themeUpdateStream.close();
+    };
+  }, []);
+  */
+
   return (
     <ThemeProvider isDarkMode={isDarkMode}>
       <div className={`min-h-screen transition-colors duration-300 ${
