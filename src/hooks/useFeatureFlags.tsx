@@ -1,16 +1,44 @@
 import React, { createContext, useEffect, useState, useContext } from 'react';
 import { GradualRolloutSDK } from 'gradual-rollout-sdk';
+import { createClient } from '@supabase/supabase-js';
+
+// Supabase client
+const supabase = createClient(
+  'https://tujzegidptajltnciyps.supabase.co',
+  'YOUR_SUPABASE_PUBLIC_ANON_KEY'
+);
 
 const FeatureFlagContext = createContext(null);
 
 export function FeatureFlagProvider({ children }) {
   const [sdk, setSdk] = useState(null);
   const [flags, setFlags] = useState([]);
+  const [userId, setUserId] = useState(null);
 
+  // Watch Supabase session and user
   useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      const newUserId = session?.user?.id || null;
+      setUserId(newUserId);
+
+      // Update identity in SDK if it already exists
+      if (sdk) {
+        sdk.setIdentity(newUserId);
+      }
+    });
+
+    return () => {
+      authListener.subscription?.unsubscribe();
+    };
+  }, [sdk]);
+
+  // Initialize SDK when userId is known
+  useEffect(() => {
+    if (!userId) return;
+
     const sdkInstance = new GradualRolloutSDK({
       apiKey: 'supersecretapikey123',
-      userId: 'user_123',
+      userId: userId,
       pollingIntervalMs: 30000,
     });
 
@@ -23,14 +51,14 @@ export function FeatureFlagProvider({ children }) {
     });
 
     sdkInstance.init().then(() => {
-      console.log('SDK initialized');
+      console.log('SDK initialized for user:', userId);
       setSdk(sdkInstance);
     });
 
     return () => {
       sdkInstance.destroy();
     };
-  }, []);
+  }, [userId]);
 
   return (
     <FeatureFlagContext.Provider value={{ sdk, flags }}>
