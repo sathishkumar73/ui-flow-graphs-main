@@ -43,16 +43,9 @@ const App = () => (
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
+              {/* Dashboard and root route are now public */}
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/" element={<Dashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
@@ -61,5 +54,35 @@ const App = () => (
     </FeatureFlagProvider>
   </QueryClientProvider>
 );
+
+// const App = () => (
+//   <QueryClientProvider client={queryClient}>
+//     <FeatureFlagProvider>
+//       <TooltipProvider>
+//         <Toaster />
+//         <Sonner />
+//         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+//           <AuthProvider>
+//             <Routes>
+//               <Route path="/login" element={<Login />} />
+//               <Route path="/signup" element={<Signup />} />
+//               <Route path="/dashboard" element={
+//                 <ProtectedRoute>
+//                   <Dashboard />
+//                 </ProtectedRoute>
+//               } />
+//               <Route path="/" element={
+//                 <ProtectedRoute>
+//                   <Dashboard />
+//                 </ProtectedRoute>
+//               } />
+//               <Route path="*" element={<NotFound />} />
+//             </Routes>
+//           </AuthProvider>
+//         </BrowserRouter>
+//       </TooltipProvider>
+//     </FeatureFlagProvider>
+//   </QueryClientProvider>
+// );
 
 export default App;
