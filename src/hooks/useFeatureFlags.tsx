@@ -31,7 +31,7 @@ export function FeatureFlagProvider({ children }) {
     const sdkInstance = new GradualRolloutSDK({
       apiKey: 'supersecretapikey123',
       userId: userId || crypto.randomUUID(),
-      pollingIntervalMs: 30000,
+      pollingIntervalMs: 10000,
     });
 
     sdkInstance.on('flagsUpdated', (updatedFlags) => {
