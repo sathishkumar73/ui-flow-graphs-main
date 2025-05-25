@@ -77,7 +77,7 @@ const Login = () => {
                 },
               }}
               providers={['google', 'azure']}
-              redirectTo={`${window.location.origin}/dashboard`}
+              redirectTo={import.meta.env.VITE_APP_URL || window.location.origin}
             />
           </CardContent>
         </Card>
