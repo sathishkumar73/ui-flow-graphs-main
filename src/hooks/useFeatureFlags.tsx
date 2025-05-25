@@ -16,9 +16,9 @@ export function FeatureFlagProvider({ children }) {
       setUserId(newUserId);
 
       // Update identity in SDK if it already exists
-      if (sdk) {
-        sdk.setIdentity(newUserId);
-      }
+      // if (sdk) {
+      //   sdk.setIdentity(newUserId);
+      // }
     });
 
     return () => {
@@ -28,11 +28,9 @@ export function FeatureFlagProvider({ children }) {
 
   // Initialize SDK when userId is known
   useEffect(() => {
-    if (!userId) return;
-
     const sdkInstance = new GradualRolloutSDK({
       apiKey: 'supersecretapikey123',
-      userId: userId,
+      userId: userId || crypto.randomUUID(),
       pollingIntervalMs: 30000,
     });
 
