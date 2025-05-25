@@ -42,17 +42,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
-
-      // Handle redirect after auth state change
-      if (session) {
-        navigate('/dashboard')
-      } else {
-        navigate('/login')
-      }
     })
 
     return () => subscription.unsubscribe()
-  }, [navigate])
+  }, [])
 
   const signOut = async () => {
     await supabase.auth.signOut()

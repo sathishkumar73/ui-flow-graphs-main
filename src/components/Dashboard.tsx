@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { ThemeProvider } from "./ThemeProvider";
 import { Header } from "./Header";
 import { MetricsGrid } from "./MetricsGrid";
@@ -9,15 +9,7 @@ import { useFeatureFlags } from "../hooks/useFeatureFlags";
 
 const Dashboard = () => {
   const { sdk } = useFeatureFlags();
-  const isDarkModeFlag = sdk?.isFeatureEnabled("dark-mode");
-  const [isDarkMode, setIsDarkMode] = React.useState(false);
-
-  // Sync dark mode state whenever the flag changes
-  React.useEffect(() => {
-    if (typeof isDarkModeFlag === "boolean") {
-      setIsDarkMode(isDarkModeFlag);
-    }
-  }, [isDarkModeFlag]);
+  const isDarkMode = sdk?.isFeatureEnabled("dark-mode") || false;
 
   return (
     <ThemeProvider isDarkMode={isDarkMode}>
@@ -28,10 +20,7 @@ const Dashboard = () => {
             : "bg-gradient-to-br from-blue-50 via-white to-purple-50"
         }`}
       >
-        <Header
-          isDarkMode={isDarkMode}
-          onToggleTheme={() => setIsDarkMode(!isDarkMode)}
-        />
+        <Header isDarkMode={isDarkMode} />
 
         <main className="container mx-auto px-6 py-8">
           <div className="mb-8">

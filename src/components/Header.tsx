@@ -1,14 +1,12 @@
-
 import React from 'react';
-import { Moon, Sun, Bell, User } from 'lucide-react';
+import { Bell, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface HeaderProps {
   isDarkMode: boolean;
-  onToggleTheme: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ isDarkMode, onToggleTheme }) => {
+export const Header: React.FC<HeaderProps> = ({ isDarkMode }) => {
   return (
     <header className={`sticky top-0 z-50 backdrop-blur-md border-b transition-colors duration-300 ${
       isDarkMode 
@@ -29,21 +27,6 @@ export const Header: React.FC<HeaderProps> = ({ isDarkMode, onToggleTheme }) => 
           </div>
           
           <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onToggleTheme}
-              className={`transition-colors ${
-                isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-              }`}
-            >
-              {isDarkMode ? (
-                <Sun className="h-5 w-5 text-yellow-500" />
-              ) : (
-                <Moon className="h-5 w-5 text-gray-600" />
-              )}
-            </Button>
-            
             <Button
               variant="ghost"
               size="icon"

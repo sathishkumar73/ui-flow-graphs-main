@@ -1,12 +1,6 @@
 import React, { createContext, useEffect, useState, useContext } from 'react';
 import { GradualRolloutSDK } from 'gradual-rollout-sdk';
-import { createClient } from '@supabase/supabase-js';
-
-// Supabase client
-const supabase = createClient(
-  'https://tujzegidptajltnciyps.supabase.co',
-  'YOUR_SUPABASE_PUBLIC_ANON_KEY'
-);
+import { supabase } from '../lib/supabase';
 
 const FeatureFlagContext = createContext(null);
 
