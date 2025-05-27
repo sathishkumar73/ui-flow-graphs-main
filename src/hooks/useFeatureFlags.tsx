@@ -52,8 +52,9 @@ export function FeatureFlagProvider({ children }) {
     const sdkInstance = new GradualRolloutSDK({
       apiKey: 'supersecretapikey123',
       userId: resolvedUserId,
-      demoUserIds, // Enables hash+slice demo logic
+      demoUserIds,
       pollingIntervalMs: 10000,
+      isPlaygroundMode: true,
     });
 
     sdkInstance.on('flagsUpdated', (updatedFlags) => {
@@ -90,7 +91,7 @@ export function FeatureFlagProvider({ children }) {
 
   return (
     <FeatureFlagContext.Provider value={{ sdk, flags }}>
-      {debugInfo}
+      {/* {debugInfo} */}
       {children}
     </FeatureFlagContext.Provider>
   );
