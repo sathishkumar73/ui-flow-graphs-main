@@ -4,16 +4,22 @@ import { supabase } from '../lib/supabase';
 
 const FeatureFlagContext = createContext(null);
 
-function getAnonIdFromUrlOrGenerate() {
-  // Check URL for anon_id param
+// Get a URL param with optional fallback value
+function getUrlParam(param, fallback = null) {
   const params = new URLSearchParams(window.location.search);
-  let anonId = params.get('anon_id');
-  if (!anonId) {
-    anonId = crypto.randomUUID();
-    // Optional: store in localStorage if you want reloads in the same iframe to be stable
-    localStorage.setItem('anon_id', anonId);
+  return params.get(param) || fallback;
+}
+
+// Safely parse the demoUserIds array from the URL (from parent)
+function getDemoUserIdsFromUrl() {
+  const demoUserIdsRaw = getUrlParam('demoUserIds', null);
+  if (!demoUserIdsRaw) return [];
+  try {
+    return JSON.parse(decodeURIComponent(demoUserIdsRaw));
+  } catch (err) {
+    console.warn('Could not parse demoUserIds from URL:', err);
+    return [];
   }
-  return anonId;
 }
 
 export function FeatureFlagProvider({ children }) {
@@ -21,26 +27,32 @@ export function FeatureFlagProvider({ children }) {
   const [flags, setFlags] = useState([]);
   const [userId, setUserId] = useState(null);
 
-  // Watch Supabase session and user
+  // Read playground info from URL
+  const anonId = getUrlParam('anon_id');
+  const frameId = getUrlParam('frame_id', 'frame1');
+  const demoUserIds = getDemoUserIdsFromUrl();
+
+  // Watch Supabase session and user (optional for auth testing)
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       const newUserId = session?.user?.id || null;
       setUserId(newUserId);
     });
-
     return () => {
       authListener.subscription?.unsubscribe();
     };
   }, []);
 
-  // Always use anon_id from URL if no real user is present
-  useEffect(() => {
-    // Use Supabase userId if logged in, else anon_id from URL (or generate)
-    const resolvedUserId = userId || getAnonIdFromUrlOrGenerate();
+  // Compose userId: priority is real user > anon+frame > fallback uuid
+  const resolvedUserId =
+    userId || (anonId ? `user_${anonId}_${frameId}` : crypto.randomUUID());
 
+  // Initialize SDK, pass demoUserIds for fair bucketing if present
+  useEffect(() => {
     const sdkInstance = new GradualRolloutSDK({
       apiKey: 'supersecretapikey123',
       userId: resolvedUserId,
+      demoUserIds, // Enables hash+slice demo logic
       pollingIntervalMs: 10000,
     });
 
@@ -55,15 +67,30 @@ export function FeatureFlagProvider({ children }) {
     sdkInstance.init().then(() => {
       console.log('SDK initialized for user:', resolvedUserId);
       setSdk(sdkInstance);
+      // Optionally log demo info for debug
+      console.log('[Demo] All demoUserIds:', demoUserIds);
     });
 
     return () => {
       sdkInstance.destroy();
     };
-  }, [userId]); // Re-initialize if supabase user changes
+  }, [resolvedUserId, JSON.stringify(demoUserIds)]);
+
+  // Optional: Show debug info for transparency
+  const debugInfo = (
+    <div style={{ fontSize: 12, background: "#f4f4f4", padding: 8, margin: 10, borderRadius: 8 }}>
+      <div><b>Demo Debug Info</b></div>
+      <div><b>UserID:</b> {resolvedUserId}</div>
+      <div><b>Frame:</b> {frameId}</div>
+      <div><b>AnonID:</b> {anonId}</div>
+      <div><b>All DemoUserIds:</b> {demoUserIds.join(', ') || '(none)'}</div>
+      <div><b>Flags:</b> {flags.map(f => `${f.key} (${f.enabled ? "ON" : "OFF"})`).join(", ")}</div>
+    </div>
+  );
 
   return (
     <FeatureFlagContext.Provider value={{ sdk, flags }}>
+      {debugInfo}
       {children}
     </FeatureFlagContext.Provider>
   );
