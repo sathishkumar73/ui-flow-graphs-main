@@ -4,6 +4,18 @@ import { supabase } from '../lib/supabase';
 
 const FeatureFlagContext = createContext(null);
 
+function getAnonIdFromUrlOrGenerate() {
+  // Check URL for anon_id param
+  const params = new URLSearchParams(window.location.search);
+  let anonId = params.get('anon_id');
+  if (!anonId) {
+    anonId = crypto.randomUUID();
+    // Optional: store in localStorage if you want reloads in the same iframe to be stable
+    localStorage.setItem('anon_id', anonId);
+  }
+  return anonId;
+}
+
 export function FeatureFlagProvider({ children }) {
   const [sdk, setSdk] = useState(null);
   const [flags, setFlags] = useState([]);
@@ -14,23 +26,21 @@ export function FeatureFlagProvider({ children }) {
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       const newUserId = session?.user?.id || null;
       setUserId(newUserId);
-
-      // Update identity in SDK if it already exists
-      // if (sdk) {
-      //   sdk.setIdentity(newUserId);
-      // }
     });
 
     return () => {
       authListener.subscription?.unsubscribe();
     };
-  }, [sdk]);
+  }, []);
 
-  // Initialize SDK when userId is known
+  // Always use anon_id from URL if no real user is present
   useEffect(() => {
+    // Use Supabase userId if logged in, else anon_id from URL (or generate)
+    const resolvedUserId = userId || getAnonIdFromUrlOrGenerate();
+
     const sdkInstance = new GradualRolloutSDK({
       apiKey: 'supersecretapikey123',
-      userId: userId || crypto.randomUUID(),
+      userId: resolvedUserId,
       pollingIntervalMs: 10000,
     });
 
@@ -43,14 +53,14 @@ export function FeatureFlagProvider({ children }) {
     });
 
     sdkInstance.init().then(() => {
-      console.log('SDK initialized for user:', userId);
+      console.log('SDK initialized for user:', resolvedUserId);
       setSdk(sdkInstance);
     });
 
     return () => {
       sdkInstance.destroy();
     };
-  }, [userId]);
+  }, [userId]); // Re-initialize if supabase user changes
 
   return (
     <FeatureFlagContext.Provider value={{ sdk, flags }}>
