@@ -30,6 +30,7 @@ export function FeatureFlagProvider({ children }) {
   // Read playground info from URL
   const anonId = getUrlParam('anon_id');
   const frameId = getUrlParam('frame_id', 'frame1');
+  const sessionId = getUrlParam('session_id', null);
   const demoUserIds = getDemoUserIdsFromUrl();
 
   // Watch Supabase session and user (optional for auth testing)
@@ -54,6 +55,7 @@ export function FeatureFlagProvider({ children }) {
       userId: resolvedUserId,
       anonId,
       demoUserIds,
+      sessionId,
       pollingIntervalMs: 10000,
       isPlaygroundMode: true,
     });
