@@ -52,7 +52,7 @@ export function FeatureFlagProvider({ children }) {
     const sdkInstance = new GradualRolloutSDK({
       apiKey: 'supersecretapikey123',
       userId: resolvedUserId,
-      anonId: anonId,
+      anonId,
       demoUserIds,
       pollingIntervalMs: 10000,
       isPlaygroundMode: true,
