@@ -21,6 +21,11 @@ const Dashboard = () => {
         }`}
       >
         <Header isDarkMode={isDarkMode} />
+        <div className="flex justify-end">
+          {isDarkMode
+            ? "Users in A group"
+            : "Users in B group"}
+        </div>
 
         <main className="container mx-auto px-6 py-8">
           <div className="mb-8">

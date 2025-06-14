@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState, useContext } from 'react';
+import React, { createContext, useEffect, useState, useContext, useMemo } from 'react';
 import { GradualRolloutSDK } from 'gradual-rollout-sdk';
 import { supabase } from '../lib/supabase';
 
@@ -44,20 +44,29 @@ export function FeatureFlagProvider({ children }) {
     };
   }, []);
 
-  // Compose userId: priority is real user > anon+frame > fallback uuid
-  const resolvedUserId =
-    userId || (anonId ? `user_${anonId}_${frameId}` : crypto.randomUUID());
+  // Compose userId: priority is real user > anon+frame > fallback uuid (persisted for session)
+  const resolvedUserId = useMemo(() => {
+    if (userId) return userId;
+    if (anonId) return `user_${anonId}_${frameId}`;
+    let uuid = sessionStorage.getItem('ff_fallback_uuid');
+    if (!uuid) {
+      uuid = crypto.randomUUID();
+      sessionStorage.setItem('ff_fallback_uuid', uuid);
+    }
+    return uuid;
+  }, [userId, anonId, frameId]);
 
+  console.log(resolvedUserId, 'resolvedUserId');
   // Initialize SDK, pass demoUserIds for fair bucketing if present
   useEffect(() => {
     const sdkInstance = new GradualRolloutSDK({
-      apiKey: 'supersecretapikey123',
+      apiKey: import.meta.env.VITE_GRADUAL_ROLLOUT_API_KEY,
       userId: resolvedUserId,
       anonId,
       demoUserIds,
-      sessionId,
-      pollingIntervalMs: 10000,
-      isPlaygroundMode: true,
+      sessionId: resolvedUserId,
+      pollingIntervalMs: 6000,
+      isPlaygroundMode: false,
     });
 
     sdkInstance.on('flagsUpdated', (updatedFlags) => {
